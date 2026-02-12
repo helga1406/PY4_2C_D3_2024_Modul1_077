@@ -10,55 +10,40 @@ class CounterView extends StatefulWidget {
 
 class _CounterViewState extends State<CounterView> {
   final CounterController _controller = CounterController();
-  
-  double _sliderValue = 1.0; 
+  double _sliderValue = 1.0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("LogBook: Versi SRP"),
+        title: const Text("LogBookApp 077"),
         backgroundColor: const Color.fromARGB(255, 233, 196, 221),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // --- TOTAL HITUNGAN ---
+              // --- HITUNGAN ---
               const Text("Total Hitungan:", style: TextStyle(fontSize: 18)),
-              Text(
-                '${_controller.value}',
-                style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
-              ),
-              
+              Text('${_controller.value}',
+                  style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold)),
+
               const SizedBox(height: 30),
 
-              // --- SLIDER ---
-              Text(
-                "Atur Nilai Step: ${_sliderValue.round()}", 
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              
-              const SizedBox(height: 10),
-              
+              // --- Slider ---
+              Text("Atur Nilai Step: ${_sliderValue.round()}",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               Slider(
-                value: _sliderValue,
-                min: 1,
-                max: 20, 
-                divisions: 19, 
+                value: _sliderValue, min: 1, max: 20, divisions: 19,
                 label: _sliderValue.round().toString(),
                 activeColor: const Color.fromARGB(255, 167, 89, 142),
-                onChanged: (double value) {
-                  setState(() {
-                    _sliderValue = value;
-                    
-                    _controller.setStep(value.toInt()); 
-                  });
-                },
+                onChanged: (val) => setState(() {
+                  _sliderValue = val;
+                  _controller.setStep(val.toInt());
+                }),
               ),
-              
+
               const SizedBox(height: 30),
 
               // --- TOMBOL AKSI ---
@@ -66,52 +51,138 @@ class _CounterViewState extends State<CounterView> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   FloatingActionButton(
-                    onPressed: () => setState(() => _controller.decrement()),
+                    heroTag: "btn_min",
                     backgroundColor: const Color.fromARGB(255, 156, 71, 80),
+                    onPressed: () => setState(() => _controller.decrement()),
                     child: const Icon(Icons.remove, color: Colors.black),
                   ),
                   FloatingActionButton(
-                    onPressed: () => setState(() => _controller.reset()),
+                    heroTag: "btn_reset",
                     backgroundColor: const Color.fromARGB(255, 175, 172, 147),
+                    onPressed: _showResetDialog,
                     child: const Icon(Icons.refresh, color: Colors.black),
                   ),
                   FloatingActionButton(
-                    onPressed: () => setState(() => _controller.increment()),
+                    heroTag: "btn_add",
                     backgroundColor: const Color.fromARGB(255, 83, 121, 84),
+                    onPressed: () => setState(() => _controller.increment()),
                     child: const Icon(Icons.add, color: Colors.black),
                   ),
                 ],
               ),
 
               const SizedBox(height: 40),
-              
-              // --- RIWAYAT ---
-              const Text("Riwayat Aktivitas (Maks 5):", style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey), 
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.grey[50],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _controller.history.isEmpty
-                      ? [const Center(child: Text("Belum ada data", style: TextStyle(color: Colors.grey)))]
-                      : _controller.history.map((data) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 5),
-                            child: Text("• $data", style: const TextStyle(fontSize: 16)),
-                          );
-                        }).toList(),
-                ),
-              ),
+
+              HistoryListWidget(historyData: _controller.history),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showResetDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Konfirmasi Reset"),
+        content: const Text("Yakin ingin menghapus semua history?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() => _controller.reset());
+              Navigator.pop(ctx);
+            },
+            child: const Text("Ya, Reset", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- TAMPILAN HISTORY ---
+class HistoryListWidget extends StatelessWidget {
+  final List<String> historyData;
+  const HistoryListWidget({super.key, required this.historyData});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("Riwayat Aktivitas",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text("(${historyData.length}/5)",
+                style: TextStyle(color: Colors.grey[600])),
+          ],
+        ),
+        const SizedBox(height: 10),
+        historyData.isEmpty
+            ? Container(
+                padding: const EdgeInsets.all(30),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.grey.shade300)),
+                child: Column(children: const [
+                  Icon(Icons.history_toggle_off,
+                      size: 40, color: Colors.grey),
+                  Text("Belum ada aktivitas",
+                      style: TextStyle(color: Colors.grey))
+                ]),
+              )
+            : Column(
+                children: historyData.map((data) => _buildCard(data)).toList()),
+      ],
+    );
+  }
+  
+  // --- KARTU RIWAYAT ---
+  Widget _buildCard(String data) {
+    Color color = Colors.blueGrey;
+    IconData icon = Icons.delete_outline; 
+
+    // --- WARNA & ICON ---
+    String lowerData = data.toLowerCase();
+
+    if (lowerData.contains("menambah") || lowerData.contains("ditambah")) {
+      color = Colors.green[800]!;
+      icon = Icons.arrow_upward_rounded;
+    } else if (lowerData.contains("mengurangi") || lowerData.contains("dikurang")) {
+      color = Colors.red[800]!;
+      icon = Icons.arrow_downward_rounded;
+    }
+
+    // --- PARSING & JAM ---
+    String aksi = data.split(' (Jam')[0];
+    String jam = data.contains('(Jam')
+        ? data.split('(Jam ')[1].replaceAll(')', '')
+        : '-';
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1), 
+              shape: BoxShape.circle),
+          child: Icon(icon, color: color),
+        ),
+        title: Text(aksi,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        subtitle: Text("Pukul $jam"),
+        trailing: Icon(Icons.circle, size: 10, color: color),
       ),
     );
   }

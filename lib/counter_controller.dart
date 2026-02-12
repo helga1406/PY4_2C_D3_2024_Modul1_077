@@ -31,13 +31,13 @@ class CounterController {
   // --- LOGIKA TOMBOL ---
   void increment() {
     _counter += _step;
-    _addHistory("Ditambah $_step");
+    _addHistory("user menambah $_step");
   }
 
   void decrement() {
     if (_counter > 0) {
       _counter -= _step;
-      _addHistory("Dikurang $_step");
+      _addHistory("user mengurangi $_step");
     }
   }
 
