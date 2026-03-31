@@ -53,7 +53,8 @@ class _CounterViewState extends State<CounterView> {
                   FloatingActionButton(
                     heroTag: "btn_min",
                     backgroundColor: const Color.fromARGB(255, 156, 71, 80),
-                    onPressed: () => setState(() => _controller.decrement()),
+                    onPressed: () async {await _controller.decrement("admin");
+                    setState(() {}); },
                     child: const Icon(Icons.remove, color: Colors.black),
                   ),
                   FloatingActionButton(
@@ -65,7 +66,7 @@ class _CounterViewState extends State<CounterView> {
                   FloatingActionButton(
                     heroTag: "btn_add",
                     backgroundColor: const Color.fromARGB(255, 83, 121, 84),
-                    onPressed: () => setState(() => _controller.increment()),
+                    onPressed: () => setState(() => _controller.increment("admin")),
                     child: const Icon(Icons.add, color: Colors.black),
                   ),
                 ],
@@ -94,7 +95,7 @@ class _CounterViewState extends State<CounterView> {
           ),
           TextButton(
             onPressed: () {
-              setState(() => _controller.reset());
+              setState(() => _controller.reset("admin"));
               Navigator.pop(ctx);
             },
             child: const Text("Ya, Reset", style: TextStyle(color: Colors.red)),
