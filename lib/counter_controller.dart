@@ -9,7 +9,11 @@ class CounterController {
   int get step => _step;
   List<String> get history => _history;
 
-  void setStep(int s) => _step = s;
+  void setStep(int s) {
+    if (s > 0) {
+      _step = s;
+    }
+  }
 
   Future<void> loadCounter(String username) async {
     final prefs = await SharedPreferences.getInstance();
